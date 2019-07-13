@@ -1,0 +1,39 @@
+<html>
+  <style>
+    canvas {
+      border: 1px solid gray;
+      display: block;
+      height: 900;
+      width: 900;
+      margin: auto;
+    }
+    img{
+      display:none;
+    }
+    body{
+      background-color: black;
+    }
+  </style>
+
+  <head>
+    <title>Crule Game Test</title>
+    <meta charset="utf-8" />
+    <script src="geo.js"></script>
+    <script src="cruel.js"></script>
+  </head>
+
+  <body>
+    <div>
+      <img id="cardback" src="cardback1.jpg" />
+      <img id="table" src="table.jpg"/>
+      <img id="cardface" src="tops.jpg"/>
+      <img id="toolbarback" src='toolbarback.jpg'/>
+      <img id='toolbarbuttons' src='allbuttons.jpg'/>
+      <canvas id="thisCanvis">
+        <script>
+          setupCanvas("thisCanvis");
+        </script>
+      </canvas>
+    </div>
+  </body>
+</html>
