@@ -223,13 +223,13 @@ var _imgtable;
 var _imgtoolbar;
 var _Shufflebtn = imgbutton.prototype;
 var _newGamebtn = imgbutton.prototype;
-var _cheetbtn = imgbutton.prototype;
+var _cheatbtn = imgbutton.prototype;
 var _soundtgnbtn = imgbutton.prototype;
 var _clearallbtn = imgbutton.prototype;
-var _cheetedGame = false;
+var _cheatedGame = false;
 var _totalgames = 0;
 var _totalWins = 0;
-var _totalCheets = 0;
+var _totalcheats = 0;
 var _isredrawing = false;
 
 var _landers = [
@@ -271,11 +271,11 @@ function setupCanvas(id = 'thisCanvas') {
     _animi.pop();//get rid of the prototype items
     _fippl.pop();
     _Selected = null;
-    _cheetedGame = false;
+    _cheatedGame = false;
 
     _totalgames = Number(localStorage.getItem('total'));
     _totalWins = Number(localStorage.getItem("wins"));
-    _totalCheets = Number(localStorage.getItem("cheets"));
+    _totalcheats = Number(localStorage.getItem("cheats"));
 
     if (localStorage.getItem('hassave')) {
         try {
@@ -299,7 +299,7 @@ function setupCanvas(id = 'thisCanvas') {
 
     _newGamebtn = new imgbutton('toolbarbuttons', new rect(5, 0, 32, 32), _mycanvas, newGame, 1);
     _Shufflebtn = new imgbutton('toolbarbuttons', new rect(37, 0, 32, 32), _mycanvas, reshuffle, 0);
-    _cheetbtn = new imgbutton('toolbarbuttons', new rect(69, 0, 32, 32), _mycanvas, Cheet, 2);
+    _cheatbtn = new imgbutton('toolbarbuttons', new rect(69, 0, 32, 32), _mycanvas, cheat, 2);
     _soundtgnbtn = new imgbutton('toolbarbuttons', new rect(101, 0, 32, 32), _mycanvas, Soundtoggle, 3, true);
     _clearallbtn = new imgbutton('toolbarbuttons', new rect(863, 0, 32, 32), _mycanvas, clearallstats, 4);
 
@@ -430,10 +430,10 @@ function setupCanvas(id = 'thisCanvas') {
 function clearallstats() {
     _totalgames = 0;
     _totalWins = 0;
-    _totalCheets = 0;
+    _totalcheats = 0;
     localStorage.setItem("total", String(_totalgames));
     localStorage.setItem("wins", String(_totalWins));
-    localStorage.setItem("cheets", String(_totalCheets));
+    localStorage.setItem("cheats", String(_totalcheats));
 }
 
 function CheckEndOfGame() {
@@ -442,13 +442,13 @@ function CheckEndOfGame() {
         cnt += _sources[a2].cards.length;
     }
     if (cnt == 0 && _landerspecial.cards.length == 0) {
-        if (_cheetedGame)
-            _totalCheets++;
+        if (_cheatedGame)
+            _totalcheats++;
         else
             _totalWins++;
 
         localStorage.setItem("wins", String(_totalWins));
-        localStorage.setItem("cheets", String(_totalCheets));
+        localStorage.setItem("cheats", String(_totalcheats));
 
     }
 }
@@ -496,12 +496,12 @@ function reload() {
 }
 
 
-function Cheet() {
+function cheat() {
     for (var qq = 0; qq < _sources.length; qq++) {
         shuffledeck(_sources[qq].cards);
     }
     reshuffle();
-    _cheetedGame = true;
+    _cheatedGame = true;
 }
 
 
@@ -703,8 +703,8 @@ function redraw(istimer = false) {
             text = 'Reshuffle deck';
         else if (_newGamebtn.hasmouse())
             text = 'New game?';
-        else if (_cheetbtn.hasmouse())
-            text = 'Cheet and re-randomize remaining decks';
+        else if (_cheatbtn.hasmouse())
+            text = 'Cheat and re-randomize remaining decks';
         else if (_soundtgnbtn.hasmouse()) {
             if (_soundtgnbtn.value)
                 text = 'Toggle sound off';
@@ -716,13 +716,13 @@ function redraw(istimer = false) {
 
         _crc.fillText(text, 140, 16);
         _crc.textAlign = 'right';
-        _crc.fillText('Total Games: ' + _totalgames + '  Won: ' + _totalWins + '  Cheeted: ' + _totalCheets, 863, 16);
+        _crc.fillText('Total Games: ' + _totalgames + '  Won: ' + _totalWins + '  cheated: ' + _totalcheats, 863, 16);
 
 
         //redraw the button
         _Shufflebtn.update();
         _newGamebtn.update();
-        _cheetbtn.update();
+        _cheatbtn.update();
         _soundtgnbtn.update();
         _clearallbtn.update();
         _isredrawing = false;
