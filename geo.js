@@ -4,6 +4,7 @@
 //#region Point class
 
 class point {
+
     /**
      * constructor for point, default is 0,0
      * @param {number} x coord
@@ -38,6 +39,7 @@ class point {
 //#region size class
 
 class size {
+
     /**
      * constructor for size, default is 0,0
      * @param {number} width 
@@ -72,6 +74,7 @@ class size {
 //#region Rectangle class
 
 class rect {
+
     /**
      * constructor for rect, default is an empty rect
      * @param {number} x x coord
@@ -206,19 +209,43 @@ class rect {
  * @param {number} h: height
  * @param {number} r: radius in the corners
  */
-CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-    if (w < 2 * r) r = w / 2;
-    if (h < 2 * r) r = h / 2;
-    this.beginPath();
-    this.moveTo(x + r, y);
-    this.arcTo(x + w, y, x + w, y + h, r);
-    this.arcTo(x + w, y + h, x, y + h, r);
-    this.arcTo(x, y + h, x, y, r);
-    this.arcTo(x, y, x + w, y, r);
-    this.closePath();
+CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, radi) {
+    createRoundedRecPath(this, x, y, w, h, radi);
     this.stroke();
     return this;
 };
+
+/**
+ * creates a rounded rect path
+ * @param {CanvasrenderingContext2D} context the context to draw with
+ * @param {number} x  x-cord
+ * @param {number} y: y-cord
+ * @param {number} w: width
+ * @param {number} h: height
+ * @param {number} radi: radius in the corners
+ */
+function createRoundedRecPath(context, x, y, w, h, radi) {
+    if (w < 2 * radi) radi = w / 2;
+    if (h < 2 * radi) radi = h / 2;
+    context.beginPath();
+    context.moveTo(x + radi, y);
+    context.arcTo(x + w, y, x + w, y + h, radi);
+    context.arcTo(x + w, y + h, x, y + h, radi);
+    context.arcTo(x, y + h, x, y, radi);
+    context.arcTo(x, y, x + w, y, radi);
+    context.closePath();
+}
+
+
+/**
+ * creates a rounded rect path
+ * @param {CanvasrenderingContext2D} context the context to draw with
+ * @param {rect} rec bounding rectangle to use
+ * @param {number} radi: radius in the corners
+ */
+function createRoundedRecPathR(context, rec, radi) {
+    createRoundedRecPath(context, rec.x, rec.y, rec.width, rec.height, radi);
+}
 
 
 /**
@@ -302,10 +329,11 @@ point.prototype.keepwithin = function (R = rect.prototype) {
     return this;
 };
 
+
 /**
  * for checking to see if a string is null or empty
  */
-String.prototype.isEmpty = function() {
+String.prototype.isEmpty = function () {
     return (this.length === 0 || !this.trim());
 };
 
@@ -315,7 +343,21 @@ String.prototype.isEmpty = function() {
 
 //#region buttons
 
+/**
+ * an image button can use a known image with 3 states 
+ * verctically alligned to represent: normal, mouseover and mousedown views
+ */
 class imgbutton {
+
+    /**
+     * constructor for a image button
+     * @param {string} image a name reference to an image name to be pulled from the html
+     * @param {rect} rec the size of the button, this also informs where to extract images from the image
+     * @param {HTMLCanvasElement} xcanvas the canvas instance that the image gets pulled from
+     * @param {*} callback the click event, parameterless
+     * @param {number} pos left image index in the file (column number) this gets multiplied by image width when extracting the images
+     * @param {boolean} isToggle if this a toggling button (stays down after click)
+     */
     constructor(image = '', rec = rect.prototype, xcanvas = HTMLCanvasElement.prototype, callback = {}, pos = 0, isToggle = false) {
         this.image = d(image);
         this.R = rec;
@@ -327,8 +369,9 @@ class imgbutton {
         this.isToggle = isToggle;
         this.value = false;
 
+
         xcanvas.addEventListener('mousedown', e => {
-            if (this.R.contains(new point(e.x - xcanvas.offsetLeft, e.y - xcanvas.offsetTop))) {
+            if (this.R.contains(mouse(e) )) {
                 if (e.buttons == 1) {
                     this.mousedown = true;
                     if (this.isToggle)
@@ -339,9 +382,11 @@ class imgbutton {
             }
         });
 
+
         xcanvas.addEventListener('mousemove', e => {
-            this.mouseOver = this.R.contains(new point(e.x - xcanvas.offsetLeft, e.y - xcanvas.offsetTop));
+            this.mouseOver = this.R.contains(mouse(e));
         });
+
 
         xcanvas.addEventListener('mouseup', e => {
             if (this.mouseOver && this.mousedown) {
@@ -353,11 +398,17 @@ class imgbutton {
         });
     }
 
+    /**
+     * returns if the mouse is currently hovering over the button
+     */
     hasmouse() {
         return this.mouseOver;
     }
 
-
+    /**
+     * this updates the screen drawing, this must be handled by the owner, to keep 
+     * the correct rendering order happening.
+     */
     update() {
         var crc = this.xcanvas.getContext('2d');
         var mx = 0;
@@ -366,8 +417,6 @@ class imgbutton {
         if (this.isToggle && this.value) mx = 2;
         crc.drawImage(this.image, this.pos * this.R.width, this.R.height * mx, this.R.width, this.R.height, this.R.x, this.R.y, this.R.width, this.R.height);
     }
-
-
 
 }
 
