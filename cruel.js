@@ -10,7 +10,7 @@ const DIAMOND = 'd';
 const SPADE = 's';
 const C_SHADE = 'rgba(0,0,0,0.2)';  //try to keep the colors standard as constant, easier to change for everything
 const LANDER_REC = 'gold';
-const C_HILIGHT ='rgba(48, 176, 255,0.4)'; //yellowish
+const C_HILIGHT = 'rgba(48, 176, 255,0.4)'; //yellowish
 
 //#endregion
 
@@ -42,7 +42,7 @@ class card {
         var r = this.R; //just so i don't have to keep typing this.R
 
         crc.save(); //saves the current context of the layout, importance when clipping
-        createRoundedRecPathR(crc,r,10);//10 edge radi to give the cards rounded edges
+        createRoundedRecPathR(crc, r, 10);//10 edge radi to give the cards rounded edges
         crc.clip(); //creates a region that is the only space that can be drawn in
 
         if (!this.flipped) {
@@ -115,7 +115,7 @@ class flip_card {
         }
 
         crc.fillStyle = C_SHADE;
-        createRoundedRecPath(crc,r.x+20,r.y+20,r.width,r.height,10); //10 radi
+        createRoundedRecPath(crc, r.x + 20, r.y + 20, r.width, r.height, 10); //10 radi
         crc.fill();
         this.card.Update(crc);
         return ret;
@@ -141,7 +141,7 @@ class move_card {
         this.end = too_end;
         this.delay = delay;
         var too_pt = new point(too_end.R.x, too_end.R.y);
-        var xaddr = (too_pt.x - c.R.x) / 20; 
+        var xaddr = (too_pt.x - c.R.x) / 20;
         var yaddr = (too_pt.y - c.R.y) / 20;
         this.steps = [new point(c.R.x, c.R.y)];
         //create the animation steps, this is currently a straight line
@@ -185,7 +185,7 @@ class move_card {
 
         crc.fillStyle = C_SHADE;
         var r = this.card.R;
-        createRoundedRecPath(crc,r.x+20,r.y+20,r.width,r.height,10); //10 radi
+        createRoundedRecPath(crc, r.x + 20, r.y + 20, r.width, r.height, 10); //10 radi
         crc.fill();
         this.card.Update(crc);
         return ret;
@@ -279,6 +279,7 @@ var _totalgames = 0;                            //counters for total games - pul
 var _totalWins = 0;                             //counters for total wins  - pulled from local storage
 var _totalcheats = 0;                           //counters for total games cheated  - pulled from local storage
 var _isredrawing = false;                       //if we are curretly redrawing the screen, keeping multiples from happining
+var _shuffles = 5;
 var _landers = [                                //a list and location of all the landers
     new lander(HEART, new rect(190, 150, C_WIDTH, C_HEIGHT)),
     new lander(CLOVER, new rect(320, 150, C_WIDTH, C_HEIGHT)),
@@ -305,13 +306,13 @@ var d = function (id) {                         //quickhand of getting a item fr
     return document.getElementById(id);
 };
 
-var mouse = function(e){                        //convert the mouse coords to current scale and location
+var mouse = function (e) {                        //convert the mouse coords to current scale and location
     var rect = _mycanvas.getBoundingClientRect();
     var x = e.clientX - rect.left;
     var y = e.clientY - rect.top;
-    var sclx = _mycanvas.width/_mycanvas.clientWidth ; //get a ratio
-    var scly = _mycanvas.height/_mycanvas.clientHeight ;
-    return new point(x*sclx,y*scly);
+    var sclx = _mycanvas.width / _mycanvas.clientWidth; //get a ratio
+    var scly = _mycanvas.height / _mycanvas.clientHeight;
+    return new point(x * sclx, y * scly);
 };
 
 //#endregion
@@ -341,7 +342,7 @@ function setupCanvas(id = 'thisCanvas') {
     //see if there is a saved game in localstorage, if not start a new game
     if (localStorage.getItem('hassave')) {
         try {
-            var sav=0;
+            var sav = 0;
             for (sav = 0; sav < _sources.length; sav++)
                 _sources[sav].cards = cardsFromString(localStorage.getItem('s' + sav), _sources[sav].R.location);
 
@@ -385,7 +386,7 @@ function setupCanvas(id = 'thisCanvas') {
      * attempt to save the current game before it closes
      */
     window.onbeforeunload = function (event) {
-        var sav= 0;
+        var sav = 0;
         for (sav = 0; sav < _sources.length; sav++)
             localStorage.setItem('s' + sav, cardsToString(_sources[sav].cards));
 
@@ -401,8 +402,8 @@ function setupCanvas(id = 'thisCanvas') {
      */
     _mycanvas.onmousedown = function (event) {
         if (event.buttons == 1) {
-            var pt = mouse(event); 
-  
+            var pt = mouse(event);
+
             _Selected = findselected(pt);
             if (_Selected != null) {
                 _offset = pt;
@@ -426,7 +427,7 @@ function setupCanvas(id = 'thisCanvas') {
 
             if (_hasMouse && _Selected != null) {
                 //move the selected mouse around
-                var cpt = _currxy.subtract(_offset); 
+                var cpt = _currxy.subtract(_offset);
                 _Selected.R.x += cpt.x;
                 _Selected.R.y += cpt.y;
                 _Selected.R.keepwithin(new rect(0, 0, _mycanvas.width, _mycanvas.height));
@@ -466,10 +467,10 @@ function setupCanvas(id = 'thisCanvas') {
     _mycanvas.onmouseup = function (event) {
         if (_Selected != null) {
 
-            var xy =mouse(event);
+            var xy = mouse(event);
             var t = findsource(_Selected);
             if (t != null) {
-                var drop = findAny(_Selected, t, xy);
+                var drop = findAny(_Selected, t, xy, true);
                 if (drop != null) {
                     var inx = t.cards.indexOf(_Selected);
                     t.cards.splice(inx, 1);
@@ -553,7 +554,7 @@ function CheckEndOfGame() {
  * randomizes the cards and then starts the animation
  */
 function newGame() {
-    var ng=0;
+    var ng = 0;
     //clear any existing game going on
     for (ng = 0; ng < _landers.length; ng++) {
         _landers[ng] = new lander(_landers[ng].face, _landers[ng].R);
@@ -580,7 +581,8 @@ function newGame() {
         _animi.push(new move_card(cards[z], _sources[indx], 48 - z));
     }
 
-    _cheatedGame=false; //start fresh
+    _shuffles = 5;
+    _cheatedGame = false; //start fresh
     _totalgames++;
     localStorage.setItem("total", String(_totalgames));
 }
@@ -608,27 +610,34 @@ function Soundtoggle() {
  * all the cards for 4 to a deck or until it runs out of cards
  */
 function reshuffle() {
-    var tt = 0;
-    for (var qq = 0; qq < _sources.length; qq++) {
-        for (var j = 0; j < _sources[qq].cards.length; j++) {
-            tt++;
-            _animi.push(new move_card(_sources[qq].cards[j], _landerspecial, tt));
+    if (_shuffles > 0) {
+        _shuffles--;
+
+        var tt = 0;
+        for (var qq = 0; qq < _sources.length; qq++) {
+            for (var j = 0; j < _sources[qq].cards.length; j++) {
+                tt++;
+                _animi.push(new move_card(_sources[qq].cards[j], _landerspecial, tt));
+            }
+            _sources[qq].cards = [];
         }
-        _sources[qq].cards = [];
+
+        //2.5 seconds to hold all the cards in the special deck
+        //before moving the cards back to the decks
+        setTimeout(() => {
+            tt = 0;
+            for (var qq = 0; qq < _sources.length; qq++) {
+                var itms = _landerspecial.cards.splice(0, 4);
+                for (var j = 0; j < itms.length; j++) {
+                    tt++;
+                    _animi.push(new move_card(itms[j], _sources[qq], tt));
+                }
+            }
+        }, 2500);
+
     }
 
-    //2.5 seconds to hold all the cards in the special deck
-    //before moving the cards back to the decks
-    setTimeout(() => {
-        tt = 0;
-        for (var qq = 0; qq < _sources.length; qq++) {
-            var itms = _landerspecial.cards.splice(0, 4);
-            for (var j = 0; j < itms.length; j++) {
-                tt++;
-                _animi.push(new move_card(itms[j], _sources[qq], tt));
-            }
-        }
-    }, 2500);
+
 
 
 }
@@ -640,8 +649,8 @@ function reshuffle() {
  * @param {point} pt the location of the mouse pointer
  * @returns {object} source or lander, or null is none found 
  */
-function findAny(item = card.prototype, fromsource = source.prototype, pt = point.prototype) {
-    var i =0;
+function findAny(item = card.prototype, fromsource = source.prototype, pt = point.prototype, isdrop = false) {
+    var i = 0;
     //check the landers first, they count up
     for (i = 0; i < _landers.length; i++) {
         if (_landers[i].face == item.face && _landers[i].R.contains(pt)) {
@@ -650,15 +659,20 @@ function findAny(item = card.prototype, fromsource = source.prototype, pt = poin
             }
         }
     }
-    //if nothing was found in landers,check sources, they down down
+    //if nothing was found in landers,check sources, they count down
     for (i = 0; i < _sources.length; i++) {
         if (_sources[i].cards.length > 0 && _sources[i] != fromsource && _sources[i].R.contains(pt)) {
             var lc = _sources[i].cards.last();
             if (lc.index - 1 == item.index && lc.face == item.face) {
                 return _sources[i];
             }
+
         }
 
+        //this allows for only the kings to be moved to an empty slot
+        if (isdrop && _sources[i].cards.length == 0 && item.index == 12 && _sources[i] != fromsource && _sources[i].R.contains(pt)) {
+            return _sources[i];
+        }
     }
 }
 
@@ -746,7 +760,7 @@ function redraw(istimer = false) {
         //draw background
         _crc.drawImage(_imgtable, 0, 0, _mycanvas.width, _mycanvas.height);
 
-        var k =0;
+        var k = 0;
         //draw the lander decks
         for (k = 0; k < _landers.length; k++) {
             _landers[k].Update(_crc);
@@ -795,9 +809,8 @@ function redraw(istimer = false) {
 
         if (_Selected != null) {
             _crc.fillStyle = C_SHADE;
-            createRoundedRecPath(_crc,_Selected.R.x+20,_Selected.R.y+20,_Selected.R.width,_Selected.R.height,10);
+            createRoundedRecPath(_crc, _Selected.R.x + 20, _Selected.R.y + 20, _Selected.R.width, _Selected.R.height, 10);
             _crc.fill();
-            //_crc.fillRect(_Selected.R.x + 20, _Selected.R.y + 20, _Selected.R.width, _Selected.R.height);
             _Selected.Update(_crc);
         }
 
@@ -816,8 +829,12 @@ function redraw(istimer = false) {
         _crc.textBaseline = 'middle';
         var text = 'Cards remaining:' + cardcnt; //default text, unless the mouse is over one of the buttons
 
-        if (_Shufflebtn.hasmouse())
-            text = 'Reshuffle deck';
+        if (_Shufflebtn.hasmouse()) {
+            if (_shuffles > 0)
+                text = 'Reshuffle deck: x' + _shuffles;
+            else
+                text = 'no more reshuffles left'
+        }
         else if (_newGamebtn.hasmouse())
             text = 'New game?';
         else if (_cheatbtn.hasmouse())
@@ -857,11 +874,11 @@ function redraw(istimer = false) {
 function cardsFromString(str, location) {
     var cards = [];
     var s = str.split(',');
-    for (var p=0;p<s.length;p++) {
+    for (var p = 0; p < s.length; p++) {
         si = s[p];
         if (!si.isEmpty()) {
             var c = new card(location.x, location.y, si.substr(0, 1), Number(si.substring(1)));
-            c.flipped =true;
+            c.flipped = true;
             cards.push(c);
         }
     }
